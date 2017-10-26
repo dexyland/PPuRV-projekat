@@ -1,0 +1,52 @@
+#ifndef IMAGE_PROCESSING_H
+#define IMAGE_PROCESSING_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <inttypes.h>
+#include <string.h>
+#include <dlfcn.h>
+#include "stack.h"
+
+#define MAX_VELICINA_SLIKE 10000
+#define MAX_SIRINA_SLIKE 100
+#define MAX_VISINA_SLIKE 100
+
+
+void (*initFunc)(stek*);
+void (*pushFunc)(stek*, koordinate);
+koordinate (*popFunc)(stek*);
+stek istovrednosniPikseli;
+
+
+/*
+ *  @ Struktura koja se koristi prilikom ucitavanja slike radi dobavljanja dimenzija ucitane slike.
+ */
+
+typedef struct S_velicina
+{
+	int_least16_t visina;
+	int_least16_t sirina;
+}velicinaSlike_t;
+
+typedef struct S_slika
+{
+	int_least8_t piksel;
+	int_least8_t ucitan;
+}slika_t;
+
+
+/*
+ *  @ Funkcija pomocu koje se ucitava 'slika' iz datoteke. Maksimalna velicina i sirina slike su predefinisane.
+ *    Prvi parametar, 'imeDatoteke', je datoteka u kojoj se nalazi slika. Drugi parametar, 'slika', je pokazivac
+ *    na deo memorije gde ce ucitana slika biti smestena.
+ */
+
+velicinaSlike_t ucitajSliku(char* imeDatoteke, slika_t* slika);
+
+void pronadjiPiksele(slika_t* slika, velicinaSlike_t size, koordinate pocetak);
+
+void ispisiPiksele();
+
+
+#endif

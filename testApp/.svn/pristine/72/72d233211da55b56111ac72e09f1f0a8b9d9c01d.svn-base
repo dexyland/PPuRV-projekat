@@ -1,0 +1,86 @@
+/*********************************************************************\
+*                                                                     *
+*   Autor : Dejan Martinov RA94/2013                                  *
+*                                                                     *
+*   Datum : 22.10.2017.                                               *
+*                                                                     *
+ *********************************************************************
+*                                                                     *
+* Zadatak : Napraviti modul koji predstavlja stek. Modul izvesti kao  *
+*   dinamicku  biblioteku  (deljeni objekat). Napisati  program koji  *
+*   ucitava sliku iz datoteke u formi matrice nula i jedinica. Zatim  *
+*   napisati funkciju koja krece od  zadatog piksela i pronalazi sve  *
+*   piksele iste vrednosti  koji su susedi  njegovim  istovrednosnim  *
+*   susedima, itd. Uzeti u obzir da je na pretpostavljenom namenskom  *
+*   procesoru maksimalna dubina poziva  funkcija  4. Deljeni objekat  *
+*   koji  predstavlja  stek  dinamicki povezati tokom izvrsavanja. U  *
+*   resenju se osloniti na strukturu reda iz modula.                  *
+*                                                                     *
+ *********************************************************************
+*                                                                     *
+* Opis resenja :
+*/
+
+#include "imageProcessing.h"
+
+
+
+int main(int argc, char* argv[])
+{
+	char imeSlike[] = "slika3.txt";
+	char modul[] = "/home/rtrk/Eclipse-workspace/stackModule/Debug/libstackModule.so";
+	slika_t slika[MAX_VELICINA_SLIKE];
+	velicinaSlike_t dimenzije;
+	koordinate pocetak;
+	void* handle;
+	char* error;
+
+	void (*initFunc)(stek*);
+	void (*pushFunc)(stek*, koordinate);
+	koordinate (*popFunc)(stek*);
+
+	stek istovrednosniPikseli;
+
+	handle = dlopen(modul, RTLD_LAZY);
+	if(handle == NULL)
+	{
+		fputs(dlerror(), stderr);
+		exit(1);
+	}
+
+	initFunc = dlsym(handle, "inicijalizacijaSteka");
+	if((error = dlerror()) != NULL)
+	{
+		fputs(error, stderr);
+		exit(1);
+	}
+
+	pushFunc = dlsym(handle, "push");
+	if((error = dlerror()) != NULL)
+	{
+		fputs(error, stderr);
+		exit(1);
+	}
+
+	popFunc = dlsym(handle, "pop");
+	if((error = dlerror()) != NULL)
+	{
+		fputs(error, stderr);
+		exit(1);
+	}
+
+	initFunc(&istovrednosniPikseli);
+
+	dimenzije = ucitajSliku(imeSlike, slika);
+
+	pocetak.sirina = 0;
+	pocetak.visina = 0;
+
+	pronadjiPiksele(slika, dimenzije, pocetak, &istovrednosniPikseli, pushFunc);
+
+	ispisiPiksele(&istovrednosniPikseli, popFunc);
+
+	dlclose(handle);
+
+	return EXIT_SUCCESS;
+}

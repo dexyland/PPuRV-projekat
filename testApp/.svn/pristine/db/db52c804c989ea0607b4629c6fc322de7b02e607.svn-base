@@ -1,0 +1,155 @@
+#include "imageProcessing.h"
+
+
+velicinaSlike_t ucitajSliku(char* imeDatoteke, slika_t* slika)
+{
+	FILE* fp;
+	int_least16_t sirinaSlike = 0;
+	int_least16_t visinaSlike = 0;
+	int_least8_t sirinaIzmerena = 0;
+	int_fast16_t brojac = 0;
+	velicinaSlike_t retVal;
+	char buffer[101];
+
+
+	fp = fopen(imeDatoteke, "r");
+
+	while(fgets(buffer, MAX_SIRINA_SLIKE, fp) != NULL)
+	{
+		if(sirinaIzmerena == 0)
+		{
+			sirinaSlike = (strlen(buffer) - 1);
+			sirinaIzmerena = 1;
+		}
+
+		for(brojac = 0; brojac < sirinaSlike; brojac++)
+		{
+			slika[visinaSlike*sirinaSlike + brojac].piksel = (int_least8_t)(buffer[brojac] - '0');
+		}
+
+		visinaSlike++;
+	}
+
+	retVal.sirina = sirinaSlike;
+	retVal.visina = visinaSlike;
+
+	fclose(fp);
+	return retVal;
+}
+
+
+int_least8_t proveriDimenzije(int_least16_t pocetnaVisina, int_fast16_t offSetVisine, int_least16_t pocetnaSirina, int_fast16_t offSetSirine, velicinaSlike_t size)
+{
+	int_least8_t retVal = 1;
+
+	if((pocetnaVisina + offSetVisine) < 0)
+	{
+		retVal = 0;
+	}
+
+	if((pocetnaVisina + offSetVisine) > size.visina)
+	{
+		retVal = 0;
+	}
+
+	if((pocetnaSirina + offSetSirine) < 0)
+	{
+		retVal = 0;
+	}
+
+	if((pocetnaSirina + offSetSirine) > size.sirina)
+	{
+		retVal = 0;
+	}
+
+	return retVal;
+}
+
+
+void pronadjiPiksele(slika_t* slika, velicinaSlike_t size, koordinate pocetak)
+{
+	int_fast16_t brojacW;
+	int_fast16_t brojacH;
+	int_fast16_t brojUcitanih = 0;
+	int_fast16_t prethodnoUcitanih = 0;
+	int_fast8_t kraj = 1;
+	int_least16_t sirinaPretrage = 1;
+	int_fast8_t vrednostZaPretragu = slika[pocetak.visina*size.sirina + pocetak.sirina].piksel;
+	slika[pocetak.visina*size.sirina + pocetak.sirina].ucitan = 1;
+
+	int_fast16_t brojac1 = 0;
+	int_fast16_t brojac2 = 0;
+
+	initFunc(&istovrednosniPikseli);
+
+	while(kraj != 0)
+	{
+		for(brojacH = (-sirinaPretrage); brojacH < (sirinaPretrage + 1); brojacH++)
+		{
+			for(brojacW = (-sirinaPretrage); brojacW < (sirinaPretrage + 1); brojacW++)
+			{
+				if(proveriDimenzije(pocetak.visina, brojacH, pocetak.sirina, brojacW, size))
+				{
+					int_least16_t pozicija = (pocetak.visina + brojacH)*size.sirina + brojacW + pocetak.sirina;
+
+					if(slika[pozicija].piksel == vrednostZaPretragu)
+					{
+						if(slika[pozicija].ucitan == 1)
+						{
+							for(brojac1 = -1; brojac1 < 2; brojac1++)
+							{
+								for(brojac2 = -1; brojac2 < 2; brojac2++)
+								{
+									if(proveriDimenzije(pocetak.visina + brojacH, brojac1, pocetak.sirina + brojacW, brojac2,size))
+									{
+										int_least16_t tempPozicija = pozicija + brojac1*size.sirina + brojac2;
+
+										if((slika[tempPozicija].piksel == vrednostZaPretragu) && (slika[tempPozicija].ucitan != 1))
+										{
+											koordinate temp;
+											temp.visina = pocetak.visina + brojacH + brojac1;
+											temp.sirina = pocetak.sirina + brojacW + brojac2;
+
+											pushFunc(&istovrednosniPikseli, temp);
+											slika[tempPozicija].ucitan = 1;
+											brojUcitanih++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if(prethodnoUcitanih == brojUcitanih)
+		{
+			kraj = 0;
+		}
+
+		sirinaPretrage++;
+		prethodnoUcitanih = brojUcitanih;
+	}
+
+	printf("Tabela ucitanosti piksela 2:\n");
+	for(brojac1 = 0; brojac1 < size.visina; brojac1++)
+	{
+		for(brojac2 = 0; brojac2 < size.sirina; brojac2++)
+		{
+			printf("%"PRIdLEAST8, slika[brojac1*size.sirina + brojac2].ucitan);
+		}
+		printf("\n");
+	}
+}
+
+
+void ispisiPiksele()
+{
+	printf("Koordinate istovrednosnih piksela:\n");
+	while(istovrednosniPikseli.vrhSteka > -1)
+	{
+		koordinate temp = popFunc(&istovrednosniPikseli);
+		printf("(%"PRIuLEAST16",%"PRIuLEAST16")\n",temp.visina, temp.sirina);
+	}
+}

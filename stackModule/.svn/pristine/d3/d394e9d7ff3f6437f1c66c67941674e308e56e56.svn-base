@@ -1,0 +1,27 @@
+#ifndef STACK_MODULE
+#define STACK_MODULE
+#define VELICINA_STEKA (100)
+#include <inttypes.h>
+#include <assert.h>
+
+
+typedef struct S_element
+{
+	uint_least16_t visina;
+	uint_least16_t sirina;
+}koordinate;
+
+
+typedef struct S_stek
+{
+	koordinate elementi[VELICINA_STEKA];
+	int_fast8_t vrhSteka;
+}stek;
+
+
+void inicijalizacijaSteka(stek* sStek);
+void push(stek* sStek, koordinate element);
+koordinate pop(stek* sStek);
+
+
+#endif

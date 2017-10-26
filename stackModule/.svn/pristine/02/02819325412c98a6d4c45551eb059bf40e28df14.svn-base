@@ -1,0 +1,31 @@
+#include "stack.h"
+
+
+void inicijalizacijaSteka(stek* sStek)
+{
+	sStek->vrhSteka = -1;
+}
+
+
+void push(stek* sStek, koordinate element)
+{
+	assert(sStek->vrhSteka < (VELICINA_STEKA-1));    	 /* Provera da li je stek 'pun'. Ukoliko jeste, nemoguce je dodati */
+													 	 /* element i izvrsavanje programa ce se prekinuti! 		       */
+
+	(sStek->vrhSteka)++;
+	sStek->elementi[sStek->vrhSteka] = element;
+}
+
+
+koordinate pop(stek* sStek)
+{
+	koordinate retVal;
+
+	assert(sStek->vrhSteka > -1);					 	/* Provera da li je stek 'prazan'. Ukoliko jeste, nemoguce je preuzeti */
+													 	/* element i izvrsavanje programa ce se prekinuti! 					   */
+
+	retVal = sStek->elementi[sStek->vrhSteka];
+	(sStek->vrhSteka)--;
+
+	return retVal;
+}

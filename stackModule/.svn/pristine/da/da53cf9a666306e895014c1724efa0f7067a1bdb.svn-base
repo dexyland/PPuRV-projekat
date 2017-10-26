@@ -1,0 +1,31 @@
+#include "stack.h"
+
+
+void inicijalizacijaSteka(stek* sStek)
+{
+	sStek->vrhSteka = -1;
+}
+
+
+void push(stek* sStek, koordinate element)
+{
+	assert(sStek->vrhSteka < VELICINA_STEKA-1);
+
+
+	sStek->vrhSteka += 1;
+	sStek->elementi[sStek->vrhSteka] = element;
+}
+
+
+koordinate pop(stek* sStek)
+{
+	koordinate retVal;
+
+	assert(sStek->vrhSteka > -1);
+
+
+	retVal = sStek->elementi[sStek->vrhSteka];
+	sStek->vrhSteka -= 1;
+
+	return retVal;
+}

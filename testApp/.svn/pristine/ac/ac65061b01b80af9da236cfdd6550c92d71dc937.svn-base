@@ -1,0 +1,85 @@
+#ifndef IMAGE_PROCESSING_H
+#define IMAGE_PROCESSING_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <inttypes.h>
+#include <string.h>
+#include <dlfcn.h>
+#include "stack.h"
+
+
+/*
+ *
+ *  @ Velicina ulazne 'slike' je ogranicena na 100x100 'piksela'.
+ *
+ */
+
+#define MAX_VELICINA_SLIKE 10000
+#define MAX_SIRINA_SLIKE 100
+#define MAX_VISINA_SLIKE 100
+
+
+/*
+ * @ Struktura koja se koristi prilikom ucitavanja slike radi dobavljanja dimenzija ucitane slike.
+ */
+
+typedef struct S_velicina
+{
+	int_least16_t visina;
+	int_least16_t sirina;
+}velicinaSlike_t;
+
+
+/*
+ * @ Struktura  u koju  se smesta  jedan 'piksel' ucitane  slike. Niz  ciji su  elementi data  struktura
+ *   predstavlja ucinatu  'sliku'. Prvo polje, polje  'piksel', nosi vrednost   odredjenog  piksela, dok
+ *   drugo polje, polje 'ucitan', nosi informaciju da li je dati piksel upisan na stek prilikom trazenja
+ *   istovrednosnih 'piksela' kako bi se izbeglo visestruko upisivanje pozicije istog 'piksela' na stek.
+ */
+
+typedef struct S_slika
+{
+	int_least8_t piksel;
+	int_least8_t ucitan;
+}slika_t;
+
+
+
+/*
+ *
+ * @ Funkcija pomocu  koje se ucitava 'slika'  iz datoteke. Maksimalna visina i  sirina slike su predefinisane.
+ *   Prvi parametar, 'imeDatoteke', je datoteka u kojoj se nalazi slika. Drugi parametar, 'slika', je pokazivac
+ *   na deo memorije gde ce ucitana slika biti smestena. Povratna vrednost funckije je tipa 'velicinaSlike_t' i
+ *   nosi podatke o visini i sirini ucitane slike.
+ *
+ */
+
+velicinaSlike_t ucitajSliku(char* imeDatoteke, slika_t* slika);
+
+
+/*
+ *
+ * @ Funkcija pomocu koje se  pronalaze svi istovrednosni 'pikseli' povezani sa  pocetnim 'pikselom'. Prvi parametar,
+ *   'slika', je pokazivac  na ucitanu sliku. Drugi  parametar, 'velicina', nosi informaciju o visini i sirini slike.
+ *   Treci parametar, 'pocetak', su koordinate  pocetnog 'piksela' oko kog se zapocinje  pretraga. Cetvrti parametar,
+ *   'sStek', je pokazivac na stek gde ce biti smestane koordinate pronadjenih 'piksela'. Peti parametar je pokazivac
+ *   na funkciju 'pushFunc' koja se koristi za postavljanje novog elementa na stek.
+ *
+ */
+
+void pronadjiPiksele(slika_t* slika, velicinaSlike_t velicina, koordinate pocetak, stek* sStek, void (*pushFunc)(stek*, koordinate));
+
+
+/*
+ *
+ * @ Funkcija pomocu koje se ispisuju koordinate  pronadjenih  istovrednosnih 'piksela'. Prvi  parametar, 'pocetak' nosi
+ *   informaciju o poziciji pocetnog 'piksela'. Drugi parametar, 'sStek', je pokazivac na stek sa koga se citaju podaci.
+ *   Treci parametar je pokazivac na funckiju 'popFunc' koja se koristi za citanje elementa sa vrha steka.
+ *
+ */
+
+void ispisiPiksele(koordinate pocetak, stek* sStek, koordinate (*popFunc)(stek*));
+
+
+#endif

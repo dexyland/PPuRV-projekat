@@ -1,0 +1,169 @@
+#include "imageProcessing.h"
+
+void ucitajBiblioteku(char* modul)
+{
+	void* handle;
+	char* error;
+
+	handle = dlopen(modul, RTLD_LAZY);
+	if(handle == NULL)
+	{
+		fputs(dlerror(), stderr);
+		exit(1);
+	}
+
+	initFunc = dlsym(handle, "inicijalizacijaSteka");
+	if((error = dlerror()) != NULL)
+	{
+		fputs(error, stderr);
+		exit(1);
+	}
+
+	pushFunc = dlsym(handle, "push");
+	if((error = dlerror()) != NULL)
+	{
+		fputs(error, stderr);
+		exit(1);
+	}
+
+	popFunc = dlsym(handle, "pop");
+	if((error = dlerror()) != NULL)
+	{
+		fputs(error, stderr);
+		exit(1);
+	}
+
+	dlclose(handle);
+}
+
+
+velicinaSlike_t ucitajSliku(char* imeDatoteke, slika_t* slika)
+{
+	FILE* fp;
+	int_least16_t sirinaSlike = 0;
+	int_least16_t visinaSlike = 0;
+	int_least8_t sirinaIzmerena = 0;
+	int_fast16_t brojac = 0;
+	//int_fast16_t brojac1 = 0;
+	velicinaSlike_t retVal;
+	char buffer[101];
+
+
+	fp = fopen(imeDatoteke, "r");
+
+	while(fgets(buffer, MAX_SIRINA_SLIKE, fp) != NULL)
+	{
+		if(sirinaIzmerena == 0)
+		{
+			sirinaSlike = strlen(buffer) - 1;
+			sirinaIzmerena = 1;
+		}
+
+		for(brojac = 0; brojac < sirinaSlike; brojac++)
+		{
+			slika[visinaSlike*sirinaSlike + brojac].piksel = (int_least8_t)(buffer[brojac] - '0');
+		}
+
+		visinaSlike++;
+	}
+
+	retVal.sirina = sirinaSlike;
+	retVal.visina = visinaSlike;
+
+	/*printf("Ucitani pikseli:\n");
+	for(brojac = 0; brojac < visinaSlike; brojac++)
+	{
+		for(brojac1 = 0; brojac1 < sirinaSlike; brojac1++)
+		{
+			printf("%"PRIdLEAST8, slika[brojac*sirinaSlike + brojac1].piksel);
+		}
+		printf("\n");
+	}
+
+	printf("Tabela ucitanosti piksela:\n");
+	for(brojac = 0; brojac < visinaSlike; brojac++)
+	{
+		for(brojac1 = 0; brojac1 < sirinaSlike; brojac1++)
+		{
+			printf("%"PRIdLEAST8, slika[brojac*sirinaSlike + brojac1].ucitan);
+		}
+		printf("\n");
+	}
+*/
+	fclose(fp);
+	return retVal;
+}
+
+
+void pronadjiPiksele(slika_t* slika, velicinaSlike_t size, koordinate pocetak)
+{
+	int_fast16_t brojacW;
+	int_fast16_t brojacH;
+	int_fast8_t kraj = 1;
+	int_least16_t sirinaPretrage = 1;
+	int_fast8_t vrednostZaPretragu = slika[pocetak.visina*size.sirina + pocetak.sirina].piksel;
+	slika[pocetak.visina*size.sirina + pocetak.sirina].ucitan = 1;
+
+	int_fast16_t brojac = 0;
+	int_fast16_t brojac1 = 0;
+
+	initFunc(&istovrednosniPikseli);
+
+	while(kraj != 0)
+	{
+		for(brojacH = (-sirinaPretrage); brojacH < (sirinaPretrage + 1); brojacH++)
+		{
+			for(brojacW = (-sirinaPretrage); brojacW < (sirinaPretrage + 1); brojacW++)
+			{
+				if(((pocetak.visina + brojacH) >= 0) && ((pocetak.sirina + brojacW) >= 0) && ((pocetak.sirina + brojacW) < MAX_SIRINA_SLIKE))
+				{
+					int_least16_t pozicija = (pocetak.visina + brojacH)*size.sirina + brojacW + pocetak.sirina;
+					if(slika[pozicija].piksel == vrednostZaPretragu)
+					{
+						if(slika[pozicija].ucitan != 1)
+						{
+							koordinate temp;
+							temp.visina = pocetak.visina + brojacH;
+							temp.sirina = pocetak.sirina + brojacW;
+
+							pushFunc(&istovrednosniPikseli, temp);
+							slika[pozicija].ucitan = 1;
+						}
+					}
+				}
+			}
+		}
+		kraj = 0;
+	}
+
+	printf("Tabela ucitanosti piksela 2:\n");
+	for(brojac = 0; brojac < size.visina; brojac++)
+	{
+		for(brojac1 = 0; brojac1 < size.sirina; brojac1++)
+		{
+			printf("%"PRIdLEAST8, slika[brojac*size.sirina + brojac1].ucitan);
+		}
+		printf("\n");
+	}
+}
+
+
+void ispisiPiksele()
+{
+	printf("Koordinate istovrednosnih piksela:\n");
+	while(istovrednosniPikseli.vrhSteka != -1)
+	{
+		koordinate temp = popFunc(&istovrednosniPikseli);
+		printf("(%"PRIuLEAST16",%"PRIuLEAST16")\n",temp.visina, temp.sirina);
+	}
+}
+
+
+
+
+
+
+
+
+
+
